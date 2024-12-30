@@ -5,10 +5,15 @@ import Characteristic from "@/components/Characteristic";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BASE_URL } from "@/graphql/ApolloClient";
-import { DELETE_CHATBOT } from "@/graphql/mutation/mutations";
+import {
+  ADD_CHARACTERISTIC,
+  DELETE_CHATBOT,
+  UPDATE_CHATBOT,
+} from "@/graphql/mutation/mutations";
 import { GET_CHATBOT_BY_ID } from "@/graphql/query/queries";
 import { GetChatbotByIdResponse, GetChatbotByIdVariables } from "@/types/types";
 import { useMutation, useQuery } from "@apollo/client";
+import { useUser } from "@clerk/nextjs";
 import { Copy } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -16,6 +21,8 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 const EditChatBot = ({ params: { id } }: { params: { id: string } }) => {
+  const { user } = useUser();
+
   const [url, setUrl] = useState<string>("");
   const [chatbotname, setChatbotName] = useState<string>("");
   const [newCharacteristic, setNewCharacteristic] = useState<string>("");
@@ -23,6 +30,10 @@ const EditChatBot = ({ params: { id } }: { params: { id: string } }) => {
   const [deleteChatbot] = useMutation(DELETE_CHATBOT, {
     refetchQueries: ["GetChatbotById"],
     awaitRefetchQueries: true,
+  });
+
+  const [addCharacteristic] = useMutation(ADD_CHARACTERISTIC, {
+    refetchQueries: ["GetChatbotById"],
   });
 
   const { data, loading, error } = useQuery<
@@ -43,6 +54,53 @@ const EditChatBot = ({ params: { id } }: { params: { id: string } }) => {
   useEffect(() => {
     setUrl(`${BASE_URL}/chatbot/${id}`);
   }, [id]);
+
+  const handleAddCharacteristic = async (content: string) => {
+    try {
+      const promise = addCharacteristic({
+        variables: {
+          chatbotId: Number(id),
+          content,
+          created_at: new Date().toISOString(),
+        },
+      });
+      toast.promise(promise, {
+        loading: "Adding characteristic ...",
+        success: "Characteristic added Successfully...",
+        error: "Failed to add characteristic...",
+      });
+    } catch (error) {
+      console.error("Error Adding characteristic: ", error);
+      toast.error("Failed to add characteristic...");
+    }
+  };
+
+  const [updateChatbot] = useMutation(UPDATE_CHATBOT, {
+    refetchQueries: ["GetChatbotById"],
+  });
+
+  const handleUpdateChatbot = async (e: React.FormEvent<HTMLFormElement>) => {
+    console.log("Updating chatbot...");
+    console.log("User >>", user);
+
+    e.preventDefault();
+    try {
+      const promise = updateChatbot({
+        variables: {
+          id: Number(id),
+          name: chatbotname,
+        },
+      });
+      toast.promise(promise, {
+        loading: "Updating chatbot ...",
+        success: "Chatbot updated Successfully...",
+        error: "Failed to update chatbot...",
+      });
+    } catch (error) {
+      console.error("Error Updating chatbot: ", error);
+      toast.error("Failed to update chatbot...");
+    }
+  };
 
   const handleDeleteChatBot = async (id: string) => {
     const isConfirmed = confirm(
@@ -119,14 +177,14 @@ const EditChatBot = ({ params: { id } }: { params: { id: string } }) => {
         <div className="flex space-x-4">
           <Avatar seed={chatbotname} />
           <form
-            // onSubmit={handleUpdateChatbot}
+            onSubmit={handleUpdateChatbot}
             className="flex flex-1 space-x-2 items-center"
           >
             <Input
               value={chatbotname}
               onChange={(e) => setChatbotName(e.target.value)}
               placeholder={chatbotname}
-              className="w-full border-none bg-transparent text-xl font-bold"
+              className="w-full border-1 bg-gray-200 text-xl font-bold"
               required
             />
             <Button type="submit" disabled={!chatbotname}>
@@ -143,10 +201,18 @@ const EditChatBot = ({ params: { id } }: { params: { id: string } }) => {
           in your conversations with your customers & users.
         </p>
 
-        <div>
-          <form action="">
+        <div className="bg-gray-100 p-5 md:p-5 rounded-md mt-5">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleAddCharacteristic(newCharacteristic);
+              setNewCharacteristic("");
+            }}
+            className="flex space-x-2 mb-5"
+          >
             <Input
               type="text"
+              className="bg-white"
               placeholder="Examples: If Customers ask for Pricing page, Reply with the link to pricing page: www.example.com/pricing"
               value={newCharacteristic}
               onChange={(e) => setNewCharacteristic(e.target.value)}
@@ -154,7 +220,7 @@ const EditChatBot = ({ params: { id } }: { params: { id: string } }) => {
             <Button
               type="submit"
               disabled={!newCharacteristic}
-              className="mt-1"
+              className="p-4 py-2"
             >
               Add
             </Button>

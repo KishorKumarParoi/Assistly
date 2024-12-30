@@ -33,13 +33,13 @@ const Characteristic = ({
     >
       {characteristic.content}
       <OctagonX
-        className="w-6 h-6 text-white fill-red-500 absolute top- right-1 cursor-pointer hover:opacity-50"
+        className="w-6 h-6 text-red-500 absolute top-2 right-2 cursor-pointer hover:text-red-700 transition duration-200 ease-in-out transform hover:scale-110"
         onClick={() => {
           const promise = handleRemoveCharacteristic();
           toast.promise(promise, {
-            loading: "Removing characteristic ...",
-            success: "Characteristic removed Successfully...",
-            error: "Failed to remove characteristic...",
+            loading: "Removing information ...",
+            success: "Information removed Successfully...",
+            error: "Failed to remove information...",
           });
         }}
       />
