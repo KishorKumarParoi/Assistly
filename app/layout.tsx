@@ -1,4 +1,5 @@
 import ApolloProviderWrapper from "@/components/ApolloProvider";
+import { Toaster } from "@/components/ui/sonner";
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import "./globals.css";
@@ -18,7 +19,10 @@ export default function RootLayout({
     <ApolloProviderWrapper>
       <ClerkProvider>
         <html lang="en">
-          <body className={`min-h-screen flex`}>{children}</body>
+          <body className={`min-h-screen flex`}>
+            {children}
+            <Toaster position="bottom-center" />
+          </body>
         </html>
       </ClerkProvider>
     </ApolloProviderWrapper>

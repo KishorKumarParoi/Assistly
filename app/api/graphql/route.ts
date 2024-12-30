@@ -10,10 +10,11 @@ const corsHeaders = {
 
 export async function POST(request: NextRequest) {
   const { query, variables } = await request.json();
-
-  let result;
+  console.log("Query >>", query);
+  console.log("Variables >>", variables);
 
   try {
+    let result;
     if (query.trim().startsWith("mutation")) {
       // handle mutations
       result = await serverClient.mutate({
@@ -32,11 +33,10 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const data = result.data;
-    console.log("Data >>", data);
+    console.log("Result >>", result);
     return NextResponse.json(
       {
-        data,
+        data: result.data,
       },
       {
         headers: corsHeaders,
@@ -44,5 +44,12 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.log(error);
+    return NextResponse.json(error, {
+      status: 500,
+    });
   }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, { headers: corsHeaders });
 }
