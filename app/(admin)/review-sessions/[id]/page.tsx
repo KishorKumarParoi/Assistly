@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import Messages from "@/components/Messages";
 import { GET_CHAT_SESSION_MESSAGES } from "@/graphql/query/queries";
 import serverClient from "@/lib/server/serverClient";
